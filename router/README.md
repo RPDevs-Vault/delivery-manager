@@ -44,12 +44,48 @@ Copy `runner_orchestrator.sh` to `/etc/runner_orchestrator/runner_orchestrator.s
 chmod +x /etc/runner_orchestrator/runner_orchestrator.sh
 ```
 
-### 5. Setup Cron Execution
-To run the orchestrator every minute, append the following line to your router's cron schedule (`/etc/crontabs/root` or run `crontab -e`):
-```cron
-* * * * * /etc/runner_orchestrator/runner_orchestrator.sh > /dev/null 2>&1
+### 5. Setup procd Daemon Service (`github-orchestrator`)
+Instead of using cron, run the orchestrator as a persistent service daemon supervised by OpenWrt's native `procd`.
+
+1. Create a service script `/etc/init.d/github-orchestrator` with the following content:
+```sh
+#!/bin/sh /etc/rc.common
+
+START=99
+USE_PROCD=1
+
+EXTRA_COMMANDS="status"
+EXTRA_HELP="        status  Check the status of the daemon"
+
+start_service() {
+        procd_open_instance
+        procd_set_param command /usr/bin/runner_orchestrator.sh --daemon
+        procd_set_param respawn
+        procd_set_param stdout 1
+        procd_set_param stderr 1
+        procd_close_instance
+}
+
+status_service() {
+        if pgrep -f "runner_orchestrator.sh --daemon" >/dev/null; then
+                echo "github-orchestrator is running (PID: \$(pgrep -f "runner_orchestrator.sh --daemon" | head -n 1))"
+                echo "Recent log output:"
+                logread | grep runner_orchestrator.sh | tail -n 5
+        else
+                echo "github-orchestrator is stopped"
+        fi
+}
 ```
-Restart the cron service to apply:
+
+2. Make the init script executable, enable it to start on boot, and start it:
 ```bash
-/etc/init.d/cron restart
+chmod +x /etc/init.d/github-orchestrator
+/etc/init.d/github-orchestrator enable
+/etc/init.d/github-orchestrator start
 ```
+
+3. You can verify the daemon state and recent logs at any time by running:
+```bash
+/etc/init.d/github-orchestrator status
+```
+
