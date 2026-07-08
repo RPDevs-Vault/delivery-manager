@@ -15,7 +15,7 @@ fi
 
 echo "=== Deployment Pipeline Triggered for: ${SERVICE_NAME} ==="
 
-COMPOSE_FILE="compose/${SERVICE_NAME}.compose.yml"
+COMPOSE_FILE="deploy/compose/${SERVICE_NAME}.compose.yml"
 if [ ! -f "${COMPOSE_FILE}" ]; then
     echo "Error: Service config blueprint '${COMPOSE_FILE}' not found."
     exit 1
