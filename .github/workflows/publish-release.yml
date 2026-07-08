@@ -7,7 +7,7 @@ on:
 jobs:
   publish:
     name: Publish Received Artifact
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, lightweight]
     permissions:
       contents: write
     steps:
