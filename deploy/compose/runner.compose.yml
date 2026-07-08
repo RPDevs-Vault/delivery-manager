@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  github-runner:
+    image: ghcr.io/rpdevs-vault/base-ubuntu:latest
+    container_name: action-runner-prod
+    restart: always
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      - RUNNER_NAME=${RUNNER_NAME}
+      - SYNC_TOKEN=${SYNC_TOKEN}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /mnt/sharedroot/ccache:/mnt/sharedroot/ccache
+    networks:
+      - default
+
+networks:
+  default:
+    name: llm-backbone
+    external: true
